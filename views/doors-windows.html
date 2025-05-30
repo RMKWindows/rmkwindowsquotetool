@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RMK Pricing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .input-label { @apply block text-sm font-medium text-slate-700 mb-1; }
+        .input-field { @apply mt-1 block w-full py-2 px-3 border border-slate-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm; }
+        .checkbox-label { @apply ml-2 text-sm text-slate-700; }
+        .radio-label { @apply ml-2 text-sm text-slate-700; }
+        
+        .btn { @apply w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2; }
+        .btn-primary { @apply btn bg-orange-500 hover:bg-orange-600 text-white focus:ring-orange-500; }
+        .btn-secondary { @apply btn bg-slate-200 hover:bg-slate-300 text-slate-700 focus:ring-sky-500; }
+        .btn-success { @apply btn bg-orange-500 hover:bg-orange-600 text-white focus:ring-orange-500; } 
+        .btn-danger-outline { @apply btn border-red-500 text-red-600 bg-white hover:bg-red-50 focus:ring-red-500; }
+
+        .summary-item { @apply flex justify-between py-1; }
+        .summary-label { @apply text-slate-600; }
+        .summary-value { @apply font-semibold text-slate-800; }
+        .quote-item-card { @apply mb-3 p-4 border border-slate-200 rounded-lg bg-white shadow-md; } 
+        .quote-item-header { @apply flex justify-between items-start; }
+        .quote-item-description { @apply text-sm text-slate-700 flex-grow; }
+        .quote-item-price { @apply text-sm font-semibold text-sky-700 ml-2; }
+        .quote-item-actions { @apply flex items-center flex-shrink-0; } 
+        select { max-width: 100%; }
+
+        @media print {
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            #pricingSummarySection { margin: 0; padding: 20px; border: none; box-shadow: none; width: 100%; max-width: 100%; background-color: #fff !important; }
+            #appContainer.max-w-4xl.mx-auto.bg-white { box-shadow: none !important; padding: 0 !important; }
+            body.bg-slate-100 { background-color: #fff !important; } 
+            .quote-item-card { page-break-inside: avoid; border: 1px solid #ccc; background-color: #f9f9f9 !important; }
+            .accordion-header, .accordion-content { background-color: #fff !important; border: 1px solid #eee !important; }
+            .print-header-bg { background-color: #2596be !important; color: white !important; } 
+            .print-header-bg p { color: #e2e8f0 !important; } 
+        }
+        
+        .accordion-header {
+            @apply flex justify-between items-center w-full px-4 py-3 text-left text-md font-medium text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-t-lg focus:outline-none focus-visible:ring focus-visible:ring-orange-500 focus-visible:ring-opacity-75 cursor-pointer;
+            transition: background-color 0.15s ease-in-out;
+        }
+        .accordion-header.open { @apply rounded-b-none bg-slate-200; }
+        .accordion-header .icon {
+            transition: transform 0.2s ease-in-out; @apply text-slate-500;
+        }
+        .accordion-header.open .icon {
+            transform: rotate(90deg);
+        }
+        .accordion-content {
+            @apply px-4 text-sm text-slate-700 bg-white border border-t-0 border-slate-200 rounded-b-lg;
+            max-height: 0;
+            overflow: hidden;
+            padding-top: 0; 
+            padding-bottom: 0; 
+            transition: max-height 0.3s ease-out, padding-top 0.3s ease-out, padding-bottom 0.3s ease-out;
+        }
+        .accordion-content.open {
+            @apply pt-4 pb-4; 
+            max-height: 1000px; 
+        }
+        .addon-checkbox-container { @apply space-y-2 mt-1; }
+        
+        .printing-hide-on-screen {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 p-4 sm:p-6 md:p-8">
+
+    <!--LOGIN CHECK-->
+    <script>
+    if (localStorage.getItem("rmkLoggedIn") !== "true") {
+        alert("Access denied.");
+        window.location.href = "../index.html";
+    }
+    </script>
+
+    <div id="js-init-status" style="position: fixed; top: 0; left: 0; width: 100%; background-color: #ffdd57; color: #363636; padding: 8px; text-align: center; z-index: 10000; font-size: 14px; border-bottom: 1px solid #ffcc00;">JavaScript Initializing...</div>
+    
+    <script>
+        try {
+            const immediateStatusDiv = document.getElementById('js-init-status');
+            if (immediateStatusDiv) {
+                immediateStatusDiv.textContent = "Immediate Script Check!";
+                immediateStatusDiv.style.backgroundColor = '#FFBF00'; // Change color slightly
+            } else {
+                // If this happens, something is very wrong with basic DOM access
+                console.error("Immediate JS Test: Could not find js-init-status div.");
+            }
+        } catch (e) {
+            // If even this tiny script fails, log it.
+            console.error("Error in immediate JS test script:", e);
+             const immediateStatusDiv = document.getElementById('js-init-status');
+            if (immediateStatusDiv) {
+                immediateStatusDiv.textContent = "Immediate JS FAILED!";
+                immediateStatusDiv.style.backgroundColor = '#D32F2F'; // Darker red
+                immediateStatusDiv.style.color = 'white';
+            }
+        }
+    </script>
+
+    <div class="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-2xl" id="appContainer">
+            <header class="mb-8 text-center no-print py-6 [background-color:#2596be] rounded-lg print-header-bg relative" id="appHeader">
+                <img src="../assets/logo-rmk.png" alt="RMK Logo" class="mx-auto h-16 mb-4" />
+                <h1 class="text-2xl font-bold text-white">RMK Windows & Doors Pricing</h1>
+                <p class="text-sm text-sky-100">2025 Pricing Guidelines - Internal Use</p>
+
+                <!-- ✅ Temporary Return to Login link -->
+                <a
+                    href="../index.html"
+                    class="absolute bottom-2 right-4 text-white text-xs underline hover:text-orange-300"
+                >
+                    Return to Login
+                </a>
+
+                <a
+                    href="../assets/current-pricing-042125.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="absolute bottom-2 left-4 text-white text-xs underline hover:text-orange-300"
+                >
+                Current Pricing
+                </a>
+            </header>
+
+        <form id="pricingForm" class="space-y-6 no-print">
+            <div>
+                <label for="productType" class="input-label">1. Select Product Type to Configure:</label>
+                <select id="productType" class="input-field">
+                    <option value="">-- Select --</option>
+                    <option value="window">Window</option>
+                    <option value="door">Door</option>
+                </select>
+            </div>
+
+            <div id="windowOptionsSection" class="hidden space-y-6 p-4 border border-slate-200 rounded-lg bg-white">
+                <h2 class="text-xl font-semibold text-sky-700 border-b border-slate-200 pb-2">Configure Window</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="sm:col-span-2">
+                        <label for="windowManufacturer" class="input-label">Window Manufacturer (Vinyl):</label>
+                        <select id="windowManufacturer" class="input-field"></select>
+                    </div>
+                    <div>
+                        <label for="windowQuantity" class="input-label">Quantity:</label>
+                        <input type="number" id="windowQuantity" class="input-field" value="1" min="1" max="10">
+                    </div>
+                </div>
+                <div>
+                    <label for="windowSeries" class="input-label">Window Series:</label>
+                    <select id="windowSeries" class="input-field"></select>
+                </div>
+                <div>
+                    <label class="input-label">Sizing Method:</label>
+                    <div class="mt-2 space-x-4">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="windowSizeMode" value="ui" class="form-radio text-orange-500 focus:ring-orange-500" checked>
+                            <span class="radio-label">United Inches (UI)</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="windowSizeMode" value="wh" class="form-radio text-orange-500 focus:ring-orange-500">
+                            <span class="radio-label">Width & Height</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="windowUISizeSection">
+                    <label for="windowUI" class="input-label">United Inches (UI):</label>
+                    <input type="number" id="windowUI" class="input-field" placeholder="e.g., 70">
+                </div>
+                <div id="windowWHSizeSection" class="hidden grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="windowWidth" class="input-label">Width (inches):</label>
+                        <input type="number" id="windowWidth" class="input-field" placeholder="e.g., 36">
+                    </div>
+                    <div>
+                        <label for="windowHeight" class="input-label">Height (inches):</label>
+                        <input type="number" id="windowHeight" class="input-field" placeholder="e.g., 48">
+                    </div>
+                </div>
+                <div id="calculatedUIDisplay" class="text-sm text-slate-600 mt-1 hidden">Calculated UI: <span id="calculatedUIValue" class="font-semibold">0</span></div>
+                <div id="windowTypeFactorSection" class="hidden">
+                    <label for="windowTypeFactor" class="input-label">Window Type (for UI > 130):</label>
+                    <select id="windowTypeFactor" class="input-field"></select>
+                </div>
+                <fieldset class="pt-2">
+                    <legend class="input-label mb-1">Window Adders:</legend>
+                    <div class="space-y-2">
+                        <div><input type="checkbox" id="windowGrids" class="rounded text-orange-500 focus:ring-orange-500"><label for="windowGrids" class="checkbox-label">Grids</label></div>
+                        <div><input type="checkbox" id="windowTempered" class="rounded text-orange-500 focus:ring-orange-500"><label for="windowTempered" class="checkbox-label">Tempered Glass</label></div>
+                        <div><input type="checkbox" id="windowObscure" class="rounded text-orange-500 focus:ring-orange-500"><label for="windowObscure" class="checkbox-label">Obscure Glass</label></div>
+                        <div id="windowBlackOnBlackSection" class="hidden"><input type="checkbox" id="windowBlackOnBlack" class="rounded text-orange-500 focus:ring-orange-500"><label for="windowBlackOnBlack" class="checkbox-label">Black on Black Finish</label></div>
+                    </div>
+                </fieldset>
+                 <div id="windowSpecialNotes" class="mt-2 text-sm text-red-600 bg-red-50 p-3 rounded-md hidden"></div>
+            </div>
+
+            <div id="doorOptionsSection" class="hidden space-y-6 p-4 border border-slate-200 rounded-lg bg-white">
+                <h2 class="text-xl font-semibold text-sky-700 border-b border-slate-200 pb-2">Configure Door</h2>
+                <div>
+                    <label for="doorManufacturer" class="input-label">Door Manufacturer (Vinyl):</label>
+                    <select id="doorManufacturer" class="input-field"></select>
+                </div>
+                 <div>
+                    <label for="doorSeries" class="input-label">Door Series:</label>
+                    <select id="doorSeries" class="input-field"></select>
+                </div>
+                <div>
+                    <label for="doorHeightType" class="input-label">Door Height Type:</label>
+                    <select id="doorHeightType" class="input-field">
+                        <option value="">-- Select Height --</option>
+                        <option value="6/08 TALL DOORS">6/08 Tall (6'8")</option>
+                        <option value="8/00 TALL DOORS">8/00 Tall (8'0")</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="doorSize" class="input-label">Door Size:</label>
+                    <select id="doorSize" class="input-field"></select>
+                </div>
+                <fieldset class="pt-2">
+                    <legend class="input-label mb-1">Door Adders:</legend>
+                    <div class="space-y-2">
+                        <div><input type="checkbox" id="doorGrids" class="rounded text-orange-500 focus:ring-orange-500"><label for="doorGrids" class="checkbox-label">Grids</label></div>
+                    </div>
+                </fieldset>
+            </div>
+
+            <div id="commonAddOnsSectionContainer" class="space-y-3 p-4 border border-slate-200 rounded-lg no-print bg-white">
+                <h2 class="text-xl font-semibold text-sky-700 border-b border-slate-200 pb-2 mb-3">2. Common & Other Add-ons (Apply to Entire Quote)</h2>
+                <div id="addOnsAccordion" class="space-y-2">
+                </div>
+            </div>
+            
+            <div class="p-4 border border-dashed border-sky-300 rounded-lg bg-sky-50 space-y-3 no-print" id="currentItemPricingBlock">
+                <h3 class="text-lg font-semibold text-sky-700">Current Item Pricing</h3>
+                <div id="currentItemPriceDisplay" class="text-xl font-bold text-sky-600">$0.00</div>
+                <div id="currentItemDescriptionDisplay" class="text-sm text-slate-600">Configure an item above and calculate its price.</div>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button type="button" id="calculateCurrentItemBtn" class="btn-secondary flex-1">Calculate Current Item Price</button>
+                    <button type="button" id="addItemToQuoteBtn" class="btn-primary flex-1">Add Current Item to Quote</button>
+                </div>
+            </div>
+        </form> 
+        
+        <div id="pricingSummarySection" class="mt-10 p-6 bg-white rounded-lg shadow-xl"> 
+            <div class="print-only hidden my-4 p-4 border-b border-black print-header-bg">
+                <img src="/assets/logo-rmk.png" alt="RMK Windows & Doors Logo" class="mx-auto mb-3 h-10" onerror="this.src='https://placehold.co/200x60/003152/FFFFFF?text=RMK+Logo&font=montserrat'; this.onerror=null;">
+                <h2 class="text-2xl font-bold text-white">RMK Windows & Doors</h2>
+                <p class="text-sky-100">1015 North McQeen Road #168 Gilbert, Arizona 85233</p>
+                <p class="text-sky-100">Phone: 480-240-4669 | Email: orders@rmkwindows.com</p>
+                <p class="text-sky-100">Date: <span id="printDate"></span></p>
+            </div>
+            <h2 class="text-2xl font-semibold text-sky-700 mb-4 border-b border-slate-200 pb-2">Full Quote Summary</h2>
+            <div id="quoteItemsListDisplay" class="mb-4 space-y-2">
+                <p class="text-sm text-slate-500" id="emptyQuoteMsg">No items added to the quote yet.</p>
+            </div>
+            <div id="quoteTotalsBreakdown" class="space-y-1 mb-4 pt-4 border-t border-slate-200"></div>
+            <div class="summary-item border-t-2 border-sky-600 pt-3 mt-3">
+                <span class="text-xl font-bold text-sky-700">Grand Total:</span>
+                <span id="grandTotalPrice" class="text-xl font-bold text-sky-700">$0.00</span>
+            </div>
+            <div id="manualQuoteItemsSection" class="mt-4 hidden">
+                <h3 class="text-lg font-semibold text-orange-600">Items Requiring Manual Quote:</h3>
+                <ul id="manualQuoteItemsList" class="list-disc list-inside text-orange-500 text-sm"></ul>
+            </div>
+            <div class="mt-6 flex flex-col sm:flex-row gap-3 no-print p-4 bg-orange-50 rounded-lg border border-orange-300" id="quoteActionButtons">
+                <button type="button" id="printQuoteBtn" class="btn-success flex-1">Print Quote (Save as PDF)</button>
+                <button type="button" id="clearQuoteBtn" class="btn-danger-outline flex-1">Clear Entire Quote</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+// Main application script (deferred until DOMContentLoaded)
+document.addEventListener('DOMContentLoaded', function() {
+    const jsInitStatusDiv = document.getElementById('js-init-status');
+    try {
+        if (jsInitStatusDiv && jsInitStatusDiv.textContent !== "Immediate JS FAILED!") { // Check if immediate JS already failed
+            jsInitStatusDiv.textContent = "JavaScript DOMContentLoaded Fired!"; 
+            jsInitStatusDiv.style.backgroundColor = '#A5D6A7'; // Light green for DOMContentLoaded
+        }
+
+        appContainer = document.getElementById('appContainer');
+        appHeader = document.getElementById('appHeader'); 
+        productTypeSelect = document.getElementById('productType');
+        windowOptionsSection = document.getElementById('windowOptionsSection');
+        windowManufacturerSelect = document.getElementById('windowManufacturer');
+        windowQuantityInput = document.getElementById('windowQuantity'); 
+        windowSeriesSelect = document.getElementById('windowSeries');
+        windowUISizeSection = document.getElementById('windowUISizeSection');
+        windowWHSizeSection = document.getElementById('windowWHSizeSection');
+        windowUIInput = document.getElementById('windowUI');
+        windowWidthInput = document.getElementById('windowWidth');
+        windowHeightInput = document.getElementById('windowHeight');
+        calculatedUIDisplay = document.getElementById('calculatedUIDisplay');
+        calculatedUIValue = document.getElementById('calculatedUIValue');
+        windowTypeFactorSection = document.getElementById('windowTypeFactorSection');
+        windowTypeFactorSelect = document.getElementById('windowTypeFactor');
+        windowGridsCheckbox = document.getElementById('windowGrids');
+        windowTemperedCheckbox = document.getElementById('windowTempered');
+        windowObscureCheckbox = document.getElementById('windowObscure');
+        windowBlackOnBlackSection = document.getElementById('windowBlackOnBlackSection');
+        windowBlackOnBlackCheckbox = document.getElementById('windowBlackOnBlack');
+        windowSpecialNotesDiv = document.getElementById('windowSpecialNotes');
+        windowSizeRadioButtons = document.querySelectorAll('input[name="windowSizeMode"]');
+        doorOptionsSection = document.getElementById('doorOptionsSection');
+        doorManufacturerSelect = document.getElementById('doorManufacturer');
+        doorSeriesSelect = document.getElementById('doorSeries');
+        doorHeightTypeSelect = document.getElementById('doorHeightType');
+        doorSizeSelect = document.getElementById('doorSize');
+        doorGridsCheckbox = document.getElementById('doorGrids');
+        addOnsAccordionDiv = document.getElementById('addOnsAccordion'); 
+        calculateCurrentItemBtn = document.getElementById('calculateCurrentItemBtn');
+        addItemToQuoteBtn = document.getElementById('addItemToQuoteBtn');
+        clearQuoteBtn = document.getElementById('clearQuoteBtn');
+        printQuoteBtn = document.getElementById('printQuoteBtn');
+        pricingSummarySection = document.getElementById('pricingSummarySection'); 
+        quoteItemsListDisplay = document.getElementById('quoteItemsListDisplay');
+        emptyQuoteMsg = document.getElementById('emptyQuoteMsg');
+        quoteTotalsBreakdown = document.getElementById('quoteTotalsBreakdown');
+        grandTotalPriceSpan = document.getElementById('grandTotalPrice');
+        manualQuoteItemsSection = document.getElementById('manualQuoteItemsSection');
+        manualQuoteItemsList = document.getElementById('manualQuoteItemsList');
+        printDateSpan = document.getElementById('printDate');
+        currentItemPriceDisplay = document.getElementById('currentItemPriceDisplay');
+        currentItemDescriptionDisplay = document.getElementById('currentItemDescriptionDisplay');
+        currentItemPricingBlock = document.getElementById('currentItemPricingBlock');
+        quoteActionButtons = document.getElementById('quoteActionButtons');
+
+        if (productTypeSelect) productTypeSelect.addEventListener('change', handleProductTypeChange);
+        if (windowManufacturerSelect) windowManufacturerSelect.addEventListener('change', populateWindowSeries);
+        if (windowSeriesSelect) windowSeriesSelect.addEventListener('change', updateWindowOptionsForSeries);
+        if (windowSizeRadioButtons) windowSizeRadioButtons.forEach(radio => radio.addEventListener('change', handleWindowSizeModeChange));
+        if(windowWidthInput) windowWidthInput.addEventListener('input', updateCalculatedUI);
+        if(windowHeightInput) windowHeightInput.addEventListener('input', updateCalculatedUI);
+        if(windowUIInput) windowUIInput.addEventListener('input', handleWindowUIInputChange);
+        if (doorManufacturerSelect) doorManufacturerSelect.addEventListener('change', populateDoorSeries);
+        if (doorSeriesSelect) {
+            doorSeriesSelect.addEventListener('change', () => {
+                if (doorHeightTypeSelect) doorHeightTypeSelect.value = ""; 
+                if (doorSizeSelect) doorSizeSelect.innerHTML = '<option value="">-- Select Size --</option>';
+            });
+        }
+        if (doorHeightTypeSelect) doorHeightTypeSelect.addEventListener('change', populateDoorSizes);
+        if (calculateCurrentItemBtn) calculateCurrentItemBtn.addEventListener('click', calculateCurrentItemPriceFunction);
+        if (addItemToQuoteBtn) addItemToQuoteBtn.addEventListener('click', addItemOrUpdateQuote);
+        if (clearQuoteBtn) clearQuoteBtn.addEventListener('click', clearQuote);
+        if (printQuoteBtn) printQuoteBtn.addEventListener('click', handlePrintQuote);
+        
+        populateAddOns();
+        resetCurrentItemDisplay();
+        updateFullQuoteSummaryDisplay(); 
+
+        if (jsInitStatusDiv) {
+            jsInitStatusDiv.style.display = 'none'; // Hide if everything succeeds
+        }
+    } catch (error) {
+        console.error("Initialization Error (DOMContentLoaded):", error);
+        if (jsInitStatusDiv) {
+            jsInitStatusDiv.textContent = "JavaScript Error during DOMContentLoaded! Check console.";
+            jsInitStatusDiv.style.backgroundColor = '#D32F2F'; // Darker red for error
+            jsInitStatusDiv.style.color = 'white';
+            jsInitStatusDiv.style.display = 'block'; // Ensure it's visible
+        }
+    }
+});
+
+// --- Pricing Data (Keep this as is) ---
+const pricingData = {
+    windows: { 
+        manufacturers: {
+            "ANLIN": { 
+                 series: { "CATALINA": { basePrice: { upTo65UI: 875, upTo130UI: 1175 }, uiFactorOver130: { "PIC/1LS (XO)/SH": 9.50, "3LS (XOX)": 11.75, "CSMT/AWNING": 13.00, "SPCL SHAPE/ARCH": 15.50 }, addersUiFactor: { "GRIDS": 1.00, "TEMPERED": 4.00, "OBSCURE": 2.50 }, specialNotes: null, hasBlackOnBlack: true } }
+            },
+            "MILGARD": {
+                series: { "TRINSIC (V300)": { basePrice: { upTo65UI: 675, upTo130UI: 1100 }, uiFactorOver130: { "PIC/1LS (XO)/SH": 10.00, "3LS (XOX)": 10.50, "CSMT/AWNING": 12.00, "SPCL SHAPE/ARCH": 12.50 }, addersUiFactor: { "GRIDS": 1.00, "TEMPERED": 3.50, "OBSCURE": 4.00 }, specialNotes: null, hasBlackOnBlack: true } }
+            },
+            "IWC": {
+                series: {
+                    "CROWN": { basePrice: { upTo65UI: 625, upTo130UI: 800 }, uiFactorOver130: { "PIC/1LS (XO)/SH": 6.50, "3LS (XOX)": 8.00, "CSMT/AWNING": 6.50, "SPCL SHAPE/ARCH": 15.00 }, addersUiFactor: { "GRIDS": 1.00, "TEMPERED": 3.50, "OBSCURE": 1.00 }, specialNotes: "CASEMENTS ONLY AVAILABLE AS NAIL FIN OR BLOCK FRAME.", hasBlackOnBlack: true },
+                    "Ambassador": { basePrice: { upTo65UI: 1150, upTo130UI: 1400 }, uiFactorOver130: { "PIC/1LS (XO)/SH": 11.00, "3LS (XOX)": 13.00, "CSMT/AWNING": 21.00, "SPCL SHAPE/ARCH": 21.00 }, addersUiFactor: { "GRIDS": 1.00, "TEMPERED": 4.00, "OBSCURE": 1.00 }, specialNotes: "CASEMENTS ONLY AVAILABLE AS NAIL FIN OR BLOCK FRAME.", hasBlackOnBlack: true }
+                }
+            }
+        },
+        uiFactorTypes: ["PIC/1LS (XO)/SH", "3LS (XOX)", "CSMT/AWNING", "SPCL SHAPE/ARCH"],
+        multipliers: { "Milgard Black on Black": 1.52, "Anlin Black on Black": 1.92, "IWC Black on Black": 2.14 }
+    },
+    doors: { 
+        manufacturers: {
+            "ANLIN": { series: { "MALIBU": { prices: { "6/08 TALL DOORS": { "5'-0\"x6'8\"": 2692, "6'-0\"x6'8\"": 2860, "6'-6\"x6'8\"": 2860, "8'-0\"x6'8\"": 3203, "9'-0\"x6'8\"": 4228, "12'-0\"x6'8\"": 5570 }, "8/00 TALL DOORS": { "5'-0\"x8'0\"": 2985, "6'-0\"x8'0\"": 3286, "6'-6\"x8'0\"": 3286, "8'-0\"x8'0\"": 4010, "9'-0\"x8'0\"": 4750, "12'-0\"x8'0\"": 6550 } }, adders: { "GRIDS_UI_FACTOR": 1.00 } } } },
+            "MILGARD": { series: { "V400": { prices: { "6/08 TALL DOORS": { "5'-0\"x6'8\"": 2918, "6'-0\"x6'8\"": 3092, "6'-6\"x6'8\"": 3405, "8'-0\"x6'8\"": 3672, "9'-0\"x6'8\"": 5727, "12'-0\"x6'8\"": 6965 }, "8/00 TALL DOORS": { "5'-0\"x8'0\"": 3507, "6'-0\"x8'0\"": 3692, "6'-6\"x8'0\"": 4076, "8'-0\"x8'0\"": 4392, "9'-0\"x8'0\"": 6328, "12'-0\"x8'0\"": 7979 } }, adders: { "GRIDS_UI_FACTOR": 1.00 } } } },
+            "IWC": { series: { "5800": { prices: { "6/08 TALL DOORS": { "5'-0\"x6'8\"": 2724, "6'-0\"x6'8\"": 2899, "6'-6\"x6'8\"": 3012, "8'-0\"x6'8\"": 3293, "9'-0\"x6'8\"": null, "12'-0\"x6'8\"": 5346 }, "8/00 TALL DOORS": { "5'-0\"x8'0\"": 3062, "6'-0\"x8'0\"": 3268, "6'-6\"x8'0\"": 3403, "8'-0\"x8'0\"": 4104, "9'-0\"x8'0\"": null, "12'-0\"x8'0\"": 5961 } }, adders: { "GRIDS_UI_FACTOR": 1.00 } } } }
+        }
+    },
+    addOns: {
+        "EXTERIOR TRIM": { category: "General Site & Finish", per: "OPENING", price: 150, type: "fixed" },
+        "INTERIOR JAMB & CASING": { category: "General Site & Finish", per: "OPENING", price: 200, type: "fixed" },
+        "STUCCO REPAIR": { category: "General Site & Finish", per: "OPENING", price: 450, type: "fixed" },
+        "R&R SECURITY BARS (WINDOWS)": { category: "General Site & Finish", per: "OPENING", price: 35, type: "fixed" },
+        "2ND FLOOR SET UP": { category: "General Site & Finish", per: "SIDE", price: 300, type: "fixed" },
+        
+        "COIL WRAP": { category: "Permits & Special Orders", per: "OPENING", price: 0, type: "quote" },
+        "PERMITING- GENERAL": { category: "Permits & Special Orders", per: "ADDRESS", price: 500, type: "fixed" },
+        "PERMITING ENGINEERED DRAWINGS": { category: "Permits & Special Orders", per: "OCCURANCE", price: 4500, type: "fixed" },
+
+        "REMOVE STL CSMT (INCL DRYWALL/STUCCO REPAIR)": { category: "Modifications & Structural", per: "OPENING", price: 150, type: "fixed" },
+        "CUT OUT VINYL WINDOWS": { category: "Modifications & Structural", per: "OPENING", price: 150, type: "fixed" },
+        "CUT OUT & FRAME IN WINDOW": { category: "Modifications & Structural", per: "OPENING", price: 1900, type: "fixed" },
+        "FILL IN EXISTING WINDOW": { category: "Modifications & Structural", per: "OPENING", price: 1300, type: "fixed" },
+        "CUT DOWN WINDOW FOR DOOR (WOOD FRAMING)": { category: "Modifications & Structural", per: "OPENING", price: 1300, type: "fixed" },
+        "CUT DOWN WINDOW FOR DOOR (BLOCK WALL)": { category: "Modifications & Structural", per: "OPENING", price: 1900, type: "fixed" },
+        "INSTALL HEADER UP TO 96\"": { category: "Modifications & Structural", per: "UP TO 96\"", price: 0, type: "quote" },
+        "INSTALL HEADER UP TO 216\"": { category: "Modifications & Structural", per: "UP TO 216\"", price: 0, type: "quote" },
+        "INSTALL HEADER OVER 216\"": { category: "Modifications & Structural", per: "OVER 216\"", price: 0, type: "quote" },
+        "POCKET HEADER": { category: "Modifications & Structural", per: "N/A", price: 0, type: "quote" },
+        "RAISE HEADER": { category: "Modifications & Structural", per: "OCCURANCE", price: 0, type: "quote" },
+        "ENCLOSE PATIO": { category: "Modifications & Structural", per: "OCCURANCE", price: 0, type: "quote" },
+        "CLOSE IN SINGLE DOOR": { category: "Modifications & Structural", per: "OPENING", price: 0, type: "quote" },
+        "CLOSE IN DOUBLE DOOR OPENING": { category: "Modifications & Structural", per: "OPENING", price: 0, type: "quote" },
+        "PET DOOR IN SLIDING DOOR": { category: "Modifications & Structural", per: "OCCURANCE", price: 0, type: "quote" },
+        "PET DOOR IN WALL": { category: "Modifications & Structural", per: "OCCURANCE", price: 0, type: "quote" }
+    }
+};
+
+// --- Global Variables (Keep these as is) ---
+let quoteItems = [];
+let currentItemPrice = 0;
+let currentItemDescription = "N/A";
+let currentItemRequiresManualQuote = false;
+let currentItemDetailsForQuote = {}; 
+let editingItemIndex = null; 
+
+let productTypeSelect, windowOptionsSection, windowManufacturerSelect, windowSeriesSelect,
+    windowUIInput, windowWidthInput, windowHeightInput, calculatedUIDisplay, calculatedUIValue,
+    windowTypeFactorSection, windowTypeFactorSelect, windowGridsCheckbox, windowQuantityInput,
+    windowTemperedCheckbox, windowObscureCheckbox, windowBlackOnBlackSection,
+    windowBlackOnBlackCheckbox, windowSpecialNotesDiv, doorOptionsSection,
+    doorManufacturerSelect, doorSeriesSelect, doorHeightTypeSelect, doorSizeSelect,
+    doorGridsCheckbox, addOnsAccordionDiv, calculateCurrentItemBtn, addItemToQuoteBtn, clearQuoteBtn, printQuoteBtn,
+    pricingSummarySection, quoteItemsListDisplay, emptyQuoteMsg, quoteTotalsBreakdown, grandTotalPriceSpan,
+    manualQuoteItemsSection, manualQuoteItemsList, appHeader,
+    currentItemPriceDisplay, currentItemDescriptionDisplay, currentItemPricingBlock,
+    windowUISizeSection, windowWHSizeSection, windowSizeRadioButtons, appContainer, printDateSpan,
+    quoteActionButtons;
+
+// --- Helper Functions (Keep these as is, or as modified) ---
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.className = 'fixed bottom-0 left-1/2 -translate-x-1/2 px-6 py-3 rounded-md shadow-lg text-white text-sm z-50 transition-all duration-500 ease-out opacity-0';
+
+    if (type === 'success') {
+        toast.classList.add('bg-green-600');
+    } else if (type === 'error') {
+        toast.classList.add('bg-red-600');
+    } else { 
+        toast.classList.add('bg-sky-600');
+    }
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.remove('opacity-0', 'bottom-0');
+        toast.classList.add('opacity-100', 'bottom-5');
+    }, 20); 
+
+    setTimeout(() => {
+        toast.classList.remove('bottom-5');
+        toast.classList.add('opacity-0', 'bottom-0'); 
+    }, 1800); 
+
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 2300); 
+}
+
+function handleProductTypeChange() { 
+    const type = productTypeSelect.value;
+    windowOptionsSection.classList.add('hidden');
+    doorOptionsSection.classList.add('hidden');
+    resetCurrentItemDisplay(); 
+    if (type === 'window') {
+        windowOptionsSection.classList.remove('hidden');
+        populateWindowManufacturers();
+        handleWindowSizeModeChange(); 
+        if(windowQuantityInput) windowQuantityInput.value = "1"; 
+    } else if (type === 'door') {
+        doorOptionsSection.classList.remove('hidden');
+        populateDoorManufacturers();
+    }
+}
+function handleWindowSizeModeChange() { 
+    const selectedModeRadio = document.querySelector('input[name="windowSizeMode"]:checked');
+    if (!selectedModeRadio) return; 
+    const selectedMode = selectedModeRadio.value;
+
+    if (selectedMode === 'ui') {
+        windowUISizeSection.classList.remove('hidden');
+        windowWHSizeSection.classList.add('hidden');
+        calculatedUIDisplay.classList.add('hidden');
+    } else { 
+        windowUISizeSection.classList.add('hidden');
+        windowWHSizeSection.classList.remove('hidden');
+        calculatedUIDisplay.classList.remove('hidden');
+        updateCalculatedUI();
+    }
+    handleWindowUIInputChange(); 
+}
+function updateCalculatedUI() { 
+    const width = parseFloat(windowWidthInput.value) || 0;
+    const height = parseFloat(windowHeightInput.value) || 0;
+    const ui = width + height;
+    calculatedUIValue.textContent = ui;
+    handleWindowUIInputChange(); 
+}
+function getEffectiveUI() { 
+    const selectedModeRadio = document.querySelector('input[name="windowSizeMode"]:checked');
+    if (!selectedModeRadio) return parseFloat(windowUIInput.value) || 0; 
+    const selectedMode = selectedModeRadio.value;
+    if (selectedMode === 'wh') {
+        const width = parseFloat(windowWidthInput.value) || 0;
+        const height = parseFloat(windowHeightInput.value) || 0;
+        return width + height;
+    }
+    return parseFloat(windowUIInput.value) || 0;
+}
+function handleWindowUIInputChange() { 
+    const ui = getEffectiveUI();
+    if (ui > 130) {
+        if(windowTypeFactorSection) windowTypeFactorSection.classList.remove('hidden');
+    } else {
+        if(windowTypeFactorSection) windowTypeFactorSection.classList.add('hidden');
+        if(windowTypeFactorSelect) windowTypeFactorSelect.value = ""; 
+    }
+}
+function populateSelect(selectElement, optionsArray, defaultOptionText = "-- Select --") { 
+    if (!selectElement) return;
+    selectElement.innerHTML = `<option value="">${defaultOptionText}</option>`; 
+    optionsArray.forEach(option => {
+        const opt = document.createElement('option');
+        opt.value = option; opt.textContent = option; selectElement.appendChild(opt);
+    });
+}
+function populateWindowManufacturers() { 
+    if (!windowManufacturerSelect || !windowSeriesSelect || !windowTypeFactorSelect) return;
+    const manufacturers = Object.keys(pricingData.windows.manufacturers);
+    populateSelect(windowManufacturerSelect, manufacturers, "-- Select Manufacturer --");
+    windowSeriesSelect.innerHTML = '<option value="">-- Select Series --</option>'; 
+    windowTypeFactorSelect.innerHTML = '<option value="">-- Select Type --</option>'; 
+}
+function populateWindowSeries() { 
+    if (!windowManufacturerSelect || !windowSeriesSelect || !windowTypeFactorSelect || !windowBlackOnBlackSection || !windowSpecialNotesDiv) return;
+    const manufacturer = windowManufacturerSelect.value;
+    windowSeriesSelect.innerHTML = '<option value="">-- Select Series --</option>'; 
+    windowTypeFactorSelect.innerHTML = '<option value="">-- Select Type --</option>'; 
+    windowBlackOnBlackSection.classList.add('hidden'); 
+    windowSpecialNotesDiv.classList.add('hidden'); windowSpecialNotesDiv.textContent = '';
+    if (manufacturer && pricingData.windows.manufacturers[manufacturer]) {
+        const series = Object.keys(pricingData.windows.manufacturers[manufacturer].series);
+        populateSelect(windowSeriesSelect, series, "-- Select Series --");
+    }
+}
+function updateWindowOptionsForSeries() { 
+    if (!windowManufacturerSelect || !windowSeriesSelect || !windowTypeFactorSelect || !windowBlackOnBlackSection || !windowSpecialNotesDiv) return;
+    const manufacturer = windowManufacturerSelect.value;
+    const seriesName = windowSeriesSelect.value;
+    windowBlackOnBlackSection.classList.add('hidden');
+    windowSpecialNotesDiv.classList.add('hidden'); windowSpecialNotesDiv.textContent = '';
+    if (manufacturer && seriesName && pricingData.windows.manufacturers[manufacturer]?.series[seriesName]) {
+        const seriesData = pricingData.windows.manufacturers[manufacturer].series[seriesName];
+        populateSelect(windowTypeFactorSelect, pricingData.windows.uiFactorTypes, "-- Select Type --");
+        if (seriesData.hasBlackOnBlack) windowBlackOnBlackSection.classList.remove('hidden');
+        if (seriesData.specialNotes) {
+            windowSpecialNotesDiv.textContent = "Note: " + seriesData.specialNotes;
+            windowSpecialNotesDiv.classList.remove('hidden');
+        }
+    } else {
+         windowTypeFactorSelect.innerHTML = '<option value="">-- Select Type --</option>'; 
+    }
+}
+function populateDoorManufacturers() { 
+    if (!doorManufacturerSelect || !doorSeriesSelect || !doorHeightTypeSelect || !doorSizeSelect) return;
+    const manufacturers = Object.keys(pricingData.doors.manufacturers);
+    populateSelect(doorManufacturerSelect, manufacturers, "-- Select Manufacturer --");
+    doorSeriesSelect.innerHTML = '<option value="">-- Select Series --</option>';
+    doorHeightTypeSelect.value = "";
+    doorSizeSelect.innerHTML = '<option value="">-- Select Size --</option>';
+}
+function populateDoorSeries() { 
+    if (!doorManufacturerSelect || !doorSeriesSelect || !doorHeightTypeSelect || !doorSizeSelect) return;
+    const manufacturer = doorManufacturerSelect.value;
+    doorSeriesSelect.innerHTML = '<option value="">-- Select Series --</option>';
+    doorHeightTypeSelect.value = ""; doorSizeSelect.innerHTML = '<option value="">-- Select Size --</option>'; 
+    if (manufacturer && pricingData.doors.manufacturers[manufacturer]) {
+        const series = Object.keys(pricingData.doors.manufacturers[manufacturer].series);
+        populateSelect(doorSeriesSelect, series, "-- Select Series --");
+    }
+}
+function populateDoorSizes() { 
+    if (!doorManufacturerSelect || !doorSeriesSelect || !doorHeightTypeSelect || !doorSizeSelect) return;
+    const manufacturer = doorManufacturerSelect.value;
+    const series = doorSeriesSelect.value;
+    const heightType = doorHeightTypeSelect.value;
+    doorSizeSelect.innerHTML = '<option value="">-- Select Size --</option>'; 
+    if (manufacturer && series && heightType && pricingData.doors.manufacturers[manufacturer]?.series[series]?.prices[heightType]) {
+        const sizes = Object.keys(pricingData.doors.manufacturers[manufacturer].series[series].prices[heightType]);
+        populateSelect(doorSizeSelect, sizes, "-- Select Size --");
+    }
+}
+
+function populateAddOns() {
+    if (!addOnsAccordionDiv) return;
+    addOnsAccordionDiv.innerHTML = ''; 
+    const categories = {};
+
+    Object.keys(pricingData.addOns).forEach(addOnKey => {
+        const addOn = pricingData.addOns[addOnKey];
+        if (!categories[addOn.category]) {
+            categories[addOn.category] = [];
+        }
+        categories[addOn.category].push({ key: addOnKey, ...addOn });
+    });
+
+    const categoryOrder = ["General Site & Finish", "Permits & Special Orders", "Modifications & Structural"];
+
+    categoryOrder.forEach(categoryName => {
+        if (!categories[categoryName]) return; 
+
+        const accordionItemDiv = document.createElement('div');
+        accordionItemDiv.classList.add('mb-2'); 
+
+        const headerButton = document.createElement('button');
+        headerButton.type = 'button';
+        headerButton.classList.add('accordion-header');
+        headerButton.innerHTML = `
+            <span>${categoryName}</span>
+            <span class="icon transform transition-transform duration-200">&#x276F;</span>
+        `;
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.classList.add('accordion-content');
+
+        if (categoryName === "Modifications & Structural") {
+            const checkboxContainer = document.createElement('div');
+            checkboxContainer.classList.add('addon-checkbox-container', 'grid', 'grid-cols-1', 'sm:grid-cols-2', 'gap-x-4', 'gap-y-2');
+            categories[categoryName].forEach(addOnItem => {
+                const div = document.createElement('div'); 
+                div.classList.add('flex', 'items-center');
+                const checkbox = document.createElement('input'); 
+                checkbox.type = 'checkbox';
+                checkbox.id = `addOn_${addOnItem.key.replace(/\s|\(|\)|\"|\'/g, '_')}`; 
+                checkbox.value = addOnItem.key;
+                checkbox.classList.add('rounded', 'text-orange-500', 'focus:ring-orange-500', 'common-add-on-checkbox'); 
+                checkbox.dataset.category = categoryName; 
+                checkbox.addEventListener('change', updateFullQuoteSummaryDisplay);
+                const label = document.createElement('label'); 
+                label.htmlFor = checkbox.id;
+                label.textContent = `${addOnItem.key} (${addOnItem.type === 'quote' ? 'QUOTE' : '$' + addOnItem.price + ' per ' + addOnItem.per})`;
+                label.classList.add('checkbox-label');
+                div.appendChild(checkbox); 
+                div.appendChild(label); 
+                checkboxContainer.appendChild(div);
+            });
+            contentDiv.appendChild(checkboxContainer);
+        } else { 
+            const selectEl = document.createElement('select');
+            selectEl.id = `addOnCat_${categoryName.replace(/\s|&/g, '_')}`;
+            selectEl.classList.add('input-field', 'common-add-on-select'); 
+            selectEl.dataset.category = categoryName; 
+            selectEl.addEventListener('change', updateFullQuoteSummaryDisplay);
+
+            const defaultOpt = document.createElement('option');
+            defaultOpt.value = "";
+            defaultOpt.textContent = "-- None --";
+            selectEl.appendChild(defaultOpt);
+
+            categories[categoryName].forEach(addOnItem => {
+                const option = document.createElement('option');
+                option.value = addOnItem.key;
+                option.textContent = `${addOnItem.key} (${addOnItem.type === 'quote' ? 'QUOTE' : '$' + addOnItem.price + ' per ' + addOnItem.per})`;
+                selectEl.appendChild(option);
+            });
+            contentDiv.appendChild(selectEl);
+        }
+        
+        headerButton.addEventListener('click', () => {
+            const allAccordionHeaders = addOnsAccordionDiv.querySelectorAll('.accordion-header');
+            const allAccordionContents = addOnsAccordionDiv.querySelectorAll('.accordion-content');
+            const isCurrentlyOpen = headerButton.classList.contains('open'); 
+
+            allAccordionHeaders.forEach(header => {
+                if (header !== headerButton) { 
+                    header.classList.remove('open');
+                }
+            });
+            allAccordionContents.forEach(content => {
+                if (content.previousElementSibling !== headerButton) {
+                    content.classList.remove('open');
+                }
+            });
+
+            if (isCurrentlyOpen) { 
+                headerButton.classList.remove('open');
+                contentDiv.classList.remove('open');
+            } else { 
+                headerButton.classList.add('open');
+                contentDiv.classList.add('open');
+            }
+        });
+
+        accordionItemDiv.appendChild(headerButton);
+        accordionItemDiv.appendChild(contentDiv);
+        addOnsAccordionDiv.appendChild(accordionItemDiv);
+    });
+}
+
+function resetCurrentItemDisplay(message = "Configure an item above and calculate its price.") { 
+    currentItemPrice = 0;
+    currentItemDescription = "N/A";
+    currentItemRequiresManualQuote = false;
+    currentItemDetailsForQuote = {};
+    editingItemIndex = null; 
+    if (currentItemPriceDisplay) currentItemPriceDisplay.textContent = "$0.00";
+    if (currentItemDescriptionDisplay) currentItemDescriptionDisplay.textContent = message;
+    if (addItemToQuoteBtn) addItemToQuoteBtn.textContent = "Add Current Item to Quote"; 
+    if (windowQuantityInput) windowQuantityInput.value = "1"; 
+}
+function calculateCurrentItemPriceFunction() { 
+    let price = 0;
+    let description = "";
+    let requiresManualQuoteItem = false;
+    let itemDetails = { type: productTypeSelect.value };
+    let itemNotes = ""; 
+
+    const selectedProductType = productTypeSelect.value;
+
+    if (!selectedProductType) {
+        resetCurrentItemDisplay("Please select a product type first.");
+        return;
+    }
+
+    if (selectedProductType === 'window') {
+        const quantity = parseInt(windowQuantityInput.value) || 1;
+        itemDetails.quantity = quantity;
+
+        const manufacturer = windowManufacturerSelect.value;
+        const seriesName = windowSeriesSelect.value;
+        const ui = getEffectiveUI(); 
+        itemDetails.sizingMode = document.querySelector('input[name="windowSizeMode"]:checked').value;
+        if (itemDetails.sizingMode === 'wh') {
+            itemDetails.width = parseFloat(windowWidthInput.value) || 0;
+            itemDetails.height = parseFloat(windowHeightInput.value) || 0;
+        } else {
+            itemDetails.uiValue = ui; 
+        }
+
+        itemDetails.manufacturer = manufacturer;
+        itemDetails.series = seriesName;
+        itemDetails.ui = ui; 
+        
+        let singleItemDescription = `Window: ${manufacturer} ${seriesName}, UI: ${ui}`;
+        
+        if (!manufacturer || !seriesName) { resetCurrentItemDisplay("Please select window manufacturer and series."); return; }
+        if (ui <= 0) { resetCurrentItemDisplay("Please enter/calculate a valid UI for the window."); return; }
+
+        const seriesData = pricingData.windows.manufacturers[manufacturer]?.series[seriesName];
+        if (!seriesData) { resetCurrentItemDisplay("Pricing data not found for selected window series."); return; }
+
+        let singleWindowPrice = 0;
+        if (ui <= 65) singleWindowPrice = seriesData.basePrice.upTo65UI;
+        else if (ui <= 130) singleWindowPrice = seriesData.basePrice.upTo130UI;
+        else {
+            singleWindowPrice = seriesData.basePrice.upTo130UI;
+            const factorType = windowTypeFactorSelect.value;
+            if (!factorType) { resetCurrentItemDisplay(`For UI > 130 (${ui}), please select a Window Type.`); return; }
+            itemDetails.factorType = factorType;
+            singleItemDescription += `, Type: ${factorType}`;
+            const uiFactor = seriesData.uiFactorOver130[factorType];
+            if (uiFactor !== null && uiFactor !== undefined) singleWindowPrice += (ui - 130) * uiFactor;
+            else itemNotes += ` (Note: No UI factor for ${factorType} > 130 UI)`;
+        }
+        
+        let priceBeforeMultiplier = singleWindowPrice; 
+
+        itemDetails.adders = [];
+        if (windowGridsCheckbox.checked) { 
+            singleWindowPrice += seriesData.addersUiFactor.GRIDS * ui; 
+            singleItemDescription += ", Grids"; 
+            itemDetails.adders.push("Grids");
+        }
+        if (windowTemperedCheckbox.checked) { 
+            singleWindowPrice += seriesData.addersUiFactor.TEMPERED * ui; 
+            singleItemDescription += ", Tempered"; 
+            itemDetails.adders.push("Tempered");
+        }
+        if (windowObscureCheckbox.checked) { 
+            singleWindowPrice += seriesData.addersUiFactor.OBSCURE * ui; 
+            singleItemDescription += ", Obscure"; 
+            itemDetails.adders.push("Obscure");
+        }
+        priceBeforeMultiplier = singleWindowPrice; 
+
+        if (seriesData.hasBlackOnBlack && windowBlackOnBlackCheckbox.checked) {
+            itemDetails.blackOnBlack = true;
+            singleItemDescription += ", Black on Black";
+            let multiplierKey = "";
+            if (manufacturer === "MILGARD") multiplierKey = "Milgard Black on Black";
+            else if (manufacturer === "ANLIN") multiplierKey = "Anlin Black on Black";
+            else if (manufacturer === "IWC") multiplierKey = "IWC Black on Black";
+            if (multiplierKey && pricingData.windows.multipliers[multiplierKey]) {
+                const multiplierValue = pricingData.windows.multipliers[multiplierKey];
+                singleWindowPrice = priceBeforeMultiplier * multiplierValue; 
+                itemNotes += ` (x${multiplierValue} Black on Black multiplier applied to $${priceBeforeMultiplier.toFixed(2)} each)`;
+            }
+        }
+        if (seriesData.specialNotes) itemNotes += ` (${seriesData.specialNotes})`;
+        
+        price = singleWindowPrice * quantity; 
+        description = quantity > 1 ? `${quantity} x ${singleItemDescription}` : singleItemDescription;
+
+    }
+    else if (selectedProductType === 'door') { 
+        itemDetails.quantity = 1; 
+        const manufacturer = doorManufacturerSelect.value;
+        const seriesName = doorSeriesSelect.value;
+        const heightType = doorHeightTypeSelect.value;
+        const size = doorSizeSelect.value;
+
+        itemDetails.manufacturer = manufacturer; itemDetails.series = seriesName;
+        itemDetails.heightType = heightType; itemDetails.size = size;
+        description = `Door: ${manufacturer} ${seriesName}, ${heightType}, ${size}`;
+
+        if (!manufacturer || !seriesName || !heightType || !size) { resetCurrentItemDisplay("Please select all door options."); return; }
+        const seriesData = pricingData.doors.manufacturers[manufacturer]?.series[seriesName];
+        if (!seriesData?.prices[heightType] || seriesData.prices[heightType][size] === undefined) { resetCurrentItemDisplay("Pricing data not found for selected door config."); return; }
+        
+        const doorBasePrice = seriesData.prices[heightType][size];
+        if (doorBasePrice === null) {
+            resetCurrentItemDisplay(`Selected door size (${size}) N/A for ${manufacturer} ${seriesName}.`);
+            requiresManualQuoteItem = true; 
+            itemDetails.requiresManualQuote = true;
+            price = 0; 
+        } else {
+            price += doorBasePrice;
+            itemDetails.adders = [];
+            if (doorGridsCheckbox.checked && seriesData.adders.GRIDS_UI_FACTOR) {
+                try {
+                    const parts = size.match(/(\d+)'(?:-(\d+)")?x(\d+)'(?:-(\d+)")?/);
+                    if (!parts) throw new Error("Could not parse door size format.");
+                    const doorUI = (parseFloat(parts[1])*12 + parseFloat(parts[2]||0)) + (parseFloat(parts[3])*12 + parseFloat(parts[4]||0));
+                    price += doorUI * seriesData.adders.GRIDS_UI_FACTOR;
+                    description += ", Grids";
+                    itemDetails.adders.push("Grids");
+                } catch (e) { console.error("Door size parse error for grids:", e); itemNotes += " (Error calculating door grid price)";}
+            }
+        }
+    }
+
+    currentItemPrice = price;
+    currentItemDescription = description + itemNotes;
+    currentItemRequiresManualQuote = requiresManualQuoteItem;
+    currentItemDetailsForQuote = itemDetails; 
+
+    if(currentItemPriceDisplay) currentItemPriceDisplay.textContent = `$${currentItemPrice.toFixed(2)}`;
+    if(currentItemDescriptionDisplay) currentItemDescriptionDisplay.textContent = currentItemDescription;
+    if (requiresManualQuoteItem && currentItemDescriptionDisplay) {
+        currentItemDescriptionDisplay.textContent += " - REQUIRES MANUAL QUOTE";
+    }
+}
+function addItemOrUpdateQuote() { 
+    if (currentItemPrice === 0 && currentItemDescription === "N/A" && !currentItemRequiresManualQuote) {
+        showToast("Please calculate the price for the current item first.", "error");
+        return;
+    }
+
+    const newItem = {
+        description: currentItemDescription,
+        price: currentItemPrice,
+        requiresManualQuote: currentItemRequiresManualQuote,
+        details: JSON.parse(JSON.stringify(currentItemDetailsForQuote)) 
+    };
+
+    if (editingItemIndex !== null) {
+        quoteItems.splice(editingItemIndex, 1, newItem); 
+        showToast("Item updated ✅", "success");
+    } else {
+        quoteItems.push(newItem);
+        showToast("Item added ✅", "success");
+    }
+
+    updateFullQuoteSummaryDisplay();
+    resetCurrentItemDisplay(editingItemIndex !== null ? "Item updated. Configure next item or finalize quote." : "Item added. Configure next item or finalize quote.");
+    if (productTypeSelect.value === "window") {
+        if(windowUIInput) windowUIInput.value = "";
+        if(windowWidthInput) windowWidthInput.value = "";
+        if(windowHeightInput) windowHeightInput.value = "";
+        if(windowGridsCheckbox) windowGridsCheckbox.checked = false;
+        if(windowTemperedCheckbox) windowTemperedCheckbox.checked = false;
+        if(windowObscureCheckbox) windowObscureCheckbox.checked = false;
+        if(windowBlackOnBlackCheckbox) windowBlackOnBlackCheckbox.checked = false;
+        if(windowTypeFactorSelect) windowTypeFactorSelect.value = "";
+        if(windowQuantityInput) windowQuantityInput.value = "1"; 
+        handleWindowUIInputChange(); 
+    } else if (productTypeSelect.value === "door") {
+        if(doorSizeSelect) doorSizeSelect.value = "";
+        if(doorGridsCheckbox) doorGridsCheckbox.checked = false;
+    }
+}
+function startEditItem(index) { 
+    const itemToEdit = quoteItems[index];
+    if (!itemToEdit) return;
+
+    const intendedEditingIndex = index; 
+
+    productTypeSelect.value = itemToEdit.details.type;
+    handleProductTypeChange(); 
+
+    editingItemIndex = intendedEditingIndex; 
+    setTimeout(() => {
+        if (itemToEdit.details.type === 'window') {
+            windowManufacturerSelect.value = itemToEdit.details.manufacturer;
+            populateWindowSeries(); 
+            setTimeout(() => { 
+                windowSeriesSelect.value = itemToEdit.details.series;
+                updateWindowOptionsForSeries(); 
+                windowQuantityInput.value = itemToEdit.details.quantity || 1; 
+                const sizingMode = itemToEdit.details.sizingMode || 'ui'; 
+                document.querySelector(`input[name="windowSizeMode"][value="${sizingMode}"]`).checked = true;
+                handleWindowSizeModeChange(); 
+                if (sizingMode === 'wh') {
+                    windowWidthInput.value = itemToEdit.details.width || '';
+                    windowHeightInput.value = itemToEdit.details.height || '';
+                    updateCalculatedUI();
+                } else {
+                    windowUIInput.value = itemToEdit.details.uiValue || itemToEdit.details.ui || ''; 
+                }
+                if(itemToEdit.details.factorType) windowTypeFactorSelect.value = itemToEdit.details.factorType;
+                windowGridsCheckbox.checked = itemToEdit.details.adders?.includes("Grids") || false;
+                windowTemperedCheckbox.checked = itemToEdit.details.adders?.includes("Tempered") || false;
+                windowObscureCheckbox.checked = itemToEdit.details.adders?.includes("Obscure") || false;
+                windowBlackOnBlackCheckbox.checked = !!itemToEdit.details.blackOnBlack;
+            }, 50); 
+        } else if (itemToEdit.details.type === 'door') {
+            doorManufacturerSelect.value = itemToEdit.details.manufacturer;
+            populateDoorSeries();
+            setTimeout(() => { 
+                doorSeriesSelect.value = itemToEdit.details.series;
+                doorHeightTypeSelect.value = itemToEdit.details.heightType;
+                populateDoorSizes();
+                setTimeout(() => { 
+                     doorSizeSelect.value = itemToEdit.details.size;
+                }, 50);
+                doorGridsCheckbox.checked = itemToEdit.details.adders?.includes("Grids") || false;
+            }, 50); 
+        }
+
+        currentItemPrice = itemToEdit.price; 
+        currentItemDescription = itemToEdit.description;
+        currentItemRequiresManualQuote = itemToEdit.requiresManualQuote;
+        currentItemDetailsForQuote = JSON.parse(JSON.stringify(itemToEdit.details)); 
+
+        if(currentItemPriceDisplay) currentItemPriceDisplay.textContent = `$${currentItemPrice.toFixed(2)}`;
+        if(currentItemDescriptionDisplay) currentItemDescriptionDisplay.textContent = currentItemDescription;
+        if (itemToEdit.requiresManualQuote && currentItemDescriptionDisplay) {
+            currentItemDescriptionDisplay.textContent += " - REQUIRES MANUAL QUOTE";
+        }
+        
+        if (addItemToQuoteBtn) addItemToQuoteBtn.textContent = "Update This Item in Quote"; 
+        if(pricingForm) pricingForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    }, 100); 
+}
+function removeItemFromQuote(index) {
+    if (index < 0 || index >= quoteItems.length) return;
+    if (confirm(`Are you sure you want to remove item ${index + 1}: "${quoteItems[index].description.substring(0, 50)}..."?`)) { 
+        quoteItems.splice(index, 1); 
+        if (editingItemIndex === index) { 
+            resetCurrentItemDisplay("Previously editing item removed. Configure new item.");
+        } else if (editingItemIndex !== null && index < editingItemIndex) {
+            editingItemIndex--; 
+        }
+        updateFullQuoteSummaryDisplay();
+        showToast("Item removed.", "info");
+    }
+}
+
+function formatCurrency(number) {
+    return number.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+}
+
+function updateFullQuoteSummaryDisplay() {
+    if (!quoteItemsListDisplay || !grandTotalPriceSpan || !manualQuoteItemsList || !manualQuoteItemsSection || !emptyQuoteMsg || !quoteTotalsBreakdown) return;
+
+    quoteItemsListDisplay.innerHTML = ''; 
+    let itemsSubtotal = 0;
+    let collectiveManualQuoteMessages = [];
+
+    if (quoteItems.length === 0) {
+        emptyQuoteMsg.style.display = 'block';
+    } else {
+        emptyQuoteMsg.style.display = 'none';
+        quoteItems.forEach((item, index) => {
+            const itemCard = document.createElement('div');
+            itemCard.classList.add('quote-item-card');
+            const headerDiv = document.createElement('div');
+            headerDiv.classList.add('quote-item-header');
+            const descP = document.createElement('p');
+            descP.classList.add('quote-item-description');
+            descP.textContent = `${index + 1}. ${item.description}`;
+            const priceP = document.createElement('p');
+            priceP.classList.add('quote-item-price');
+            priceP.textContent = item.requiresManualQuote ? "Manual Quote" : formatCurrency(item.price);
+            
+            const actionsDiv = document.createElement('div');
+            actionsDiv.classList.add('quote-item-actions', 'no-print');
+
+            const editButton = document.createElement('button');
+            editButton.textContent = 'Edit';
+            editButton.className = 'px-2 py-1 text-xs font-medium shadow-sm text-white bg-red-500 hover:bg-red-600 rounded-l-md';
+            editButton.onclick = () => startEditItem(index);
+
+            const removeButton = document.createElement('button');
+            removeButton.textContent = 'Remove';
+            removeButton.className = 'px-2 py-1 text-xs font-medium shadow-sm text-white bg-red-500 hover:bg-red-600 rounded-r-md ml-0.5';
+            removeButton.onclick = () => removeItemFromQuote(index);
+            
+            actionsDiv.appendChild(editButton);
+            actionsDiv.appendChild(removeButton);
+            
+            headerDiv.appendChild(descP);
+            headerDiv.appendChild(actionsDiv); 
+            itemCard.appendChild(headerDiv);
+            itemCard.appendChild(priceP); 
+            quoteItemsListDisplay.appendChild(itemCard);
+            if (!item.requiresManualQuote) itemsSubtotal += item.price;
+            if (item.requiresManualQuote) collectiveManualQuoteMessages.push(`${index + 1}. ${item.description.split(' (')[0]}`); 
+        });
+    }
+    
+    let commonAddOnsTotal = 0;
+    let commonAddOnsManualQuotes = [];
+    
+    document.querySelectorAll('.common-add-on-select').forEach(selectElement => {
+        const addOnKey = selectElement.value;
+        if (addOnKey) { 
+            const addOnData = pricingData.addOns[addOnKey];
+            if (addOnData) {
+                if (addOnData.type === 'fixed') {
+                    commonAddOnsTotal += addOnData.price;
+                } else if (addOnData.type === 'quote') {
+                    commonAddOnsManualQuotes.push(`${addOnKey} (per ${addOnData.per})`);
+                    collectiveManualQuoteMessages.push(`${addOnKey} (Common Add-on)`);
+                }
+            }
+        }
+    });
+
+    document.querySelectorAll('#addOnsAccordion .common-add-on-checkbox').forEach(checkbox => { 
+        const parentAccordionItem = checkbox.closest('.accordion-content'); 
+        if (parentAccordionItem) { 
+            const headerButton = parentAccordionItem.previousElementSibling;
+            const categoryNameFromHeader = headerButton?.querySelector('span:first-child')?.textContent; 
+            if (headerButton && categoryNameFromHeader === "Modifications & Structural") {
+                 if (checkbox.checked) {
+                    const addOnKey = checkbox.value;
+                    const addOnData = pricingData.addOns[addOnKey];
+                    if (addOnData) {
+                        if (addOnData.type === 'fixed') {
+                            commonAddOnsTotal += addOnData.price;
+                        } else if (addOnData.type === 'quote') {
+                            commonAddOnsManualQuotes.push(`${addOnKey} (per ${addOnData.per})`);
+                            collectiveManualQuoteMessages.push(`${addOnKey} (Common Add-on)`);
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    quoteTotalsBreakdown.innerHTML = ''; 
+    if (quoteItems.length > 0) {
+         const subtotalDiv = document.createElement('div');
+         subtotalDiv.classList.add('summary-item');
+         subtotalDiv.innerHTML = `<span class="summary-label">Items Subtotal:</span><span class="summary-value">${formatCurrency(itemsSubtotal)}</span>`;
+         quoteTotalsBreakdown.appendChild(subtotalDiv);
+    }
+
+    if (commonAddOnsTotal > 0 || commonAddOnsManualQuotes.length > 0) {
+        const addOnsTitleDiv = document.createElement('div');
+        addOnsTitleDiv.classList.add('summary-label', 'mt-2', 'font-medium');
+        addOnsTitleDiv.textContent = 'Common Add-ons:';
+        quoteTotalsBreakdown.appendChild(addOnsTitleDiv);
+
+        document.querySelectorAll('.common-add-on-select').forEach(selectElement => {
+            const addOnKey = selectElement.value;
+            if (addOnKey) {
+                const addOnData = pricingData.addOns[addOnKey];
+                if (addOnData) {
+                    const addOnDiv = document.createElement('div');
+                    addOnDiv.classList.add('summary-item', 'ml-2', 'text-sm');
+                    addOnDiv.innerHTML = `<span class="summary-label">${addOnKey}:</span><span class="summary-value">${addOnData.type === 'fixed' ? formatCurrency(addOnData.price) : 'Manual Quote'}</span>`;
+                    quoteTotalsBreakdown.appendChild(addOnDiv);
+                }
+            }
+        });
+        document.querySelectorAll('#addOnsAccordion .common-add-on-checkbox:checked').forEach(checkbox => { 
+            const parentAccordionItem = checkbox.closest('.accordion-content');
+            if (parentAccordionItem) {
+                const headerButton = parentAccordionItem.previousElementSibling;
+                const categoryNameFromHeader = headerButton?.querySelector('span:first-child')?.textContent;
+                 if (headerButton && categoryNameFromHeader === "Modifications & Structural") {
+                    const addOnKey = checkbox.value;
+                    const addOnData = pricingData.addOns[addOnKey];
+                    if (addOnData) {
+                        const addOnDiv = document.createElement('div');
+                        addOnDiv.classList.add('summary-item', 'ml-2', 'text-sm');
+                        addOnDiv.innerHTML = `<span class="summary-label">${addOnKey}:</span><span class="summary-value">${addOnData.type === 'fixed' ? formatCurrency(addOnData.price) : 'Manual Quote'}</span>`;
+                        quoteTotalsBreakdown.appendChild(addOnDiv);
+                    }
+                }
+            }
+        });
+    }
+
+    const grandTotal = itemsSubtotal + commonAddOnsTotal;
+    grandTotalPriceSpan.textContent = formatCurrency(grandTotal);
+
+    manualQuoteItemsList.innerHTML = '';
+    if (collectiveManualQuoteMessages.length > 0) {
+        collectiveManualQuoteMessages.forEach(msg => {
+            const li = document.createElement('li');
+            li.textContent = msg;
+            manualQuoteItemsList.appendChild(li);
+        });
+        manualQuoteItemsSection.classList.remove('hidden');
+    } else {
+        manualQuoteItemsSection.classList.add('hidden');
+    }
+}
+
+function clearQuote() { 
+    quoteItems = [];
+    document.querySelectorAll('.common-add-on-select').forEach(select => select.value = "");
+    document.querySelectorAll('.common-add-on-checkbox').forEach(checkbox => checkbox.checked = false);
+    resetCurrentItemDisplay("Quote cleared. Configure an item.");
+    updateFullQuoteSummaryDisplay();
+    showToast("Quote cleared successfully.", "success");
+}
+function handlePrintQuote() { 
+    if(printDateSpan) printDateSpan.textContent = new Date().toLocaleDateString();
+    const elementsToHide = [
+        appHeader, 
+        document.getElementById('pricingForm'),
+        currentItemPricingBlock,
+        quoteActionButtons 
+    ];
+    
+    function applyPrintViewStyles() {
+        elementsToHide.forEach(el => { if (el) el.classList.add('printing-hide-on-screen'); });
+        document.body.classList.add('print-mode');
+        if (appContainer) appContainer.classList.add('print-container-styles');
+    }
+
+    function revertPrintViewStyles() {
+        elementsToHide.forEach(el => { if (el) el.classList.remove('printing-hide-on-screen'); });
+        document.body.classList.remove('print-mode');
+        if (appContainer) appContainer.classList.remove('print-container-styles');
+    }
+
+    applyPrintViewStyles();
+
+    let afterPrintFired = false;
+    const afterPrintHandler = () => {
+        if (!afterPrintFired) {
+            revertPrintViewStyles();
+            afterPrintFired = true;
+            window.removeEventListener('afterprint', afterPrintHandler);
+            if (printCleanupTimeout) clearTimeout(printCleanupTimeout);
+        }
+    };
+    window.addEventListener('afterprint', afterPrintHandler);
+
+    let printCleanupTimeout = null;
+
+    setTimeout(() => {
+        window.print(); 
+        printCleanupTimeout = setTimeout(() => {
+            if (!afterPrintFired) { 
+                revertPrintViewStyles();
+            }
+        }, 1000); 
+    }, 100); 
+}
+
+const styleSheet = document.createElement("style");
+styleSheet.type = "text/css";
+styleSheet.innerText = `
+    .printing-hide-on-screen { display: none !important; }
+    @media print { 
+      .no-print { display: none !important; }
+    } 
+    .print-container-styles { box-shadow: none !important; padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+`;
+document.head.appendChild(styleSheet);
+</script>
+</body>
+</html>

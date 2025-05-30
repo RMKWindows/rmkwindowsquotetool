@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RMK Quoting Tool Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen flex justify-center items-center p-6">
+
+  <!--LOGIN W/USERNAME & PASSWORD-->
+  <div id="loginBox" class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm text-center">
+    <img src="assets/logo-rmk.png" alt="RMK Logo" class="mx-auto h-16 mb-4" />
+
+    <h2 class="text-2xl font-bold text-sky-800 mb-6">Login</h2>
+    <form id="loginForm" class="space-y-4">
+      <input type="text" id="username" placeholder="Username" required
+        class="w-full px-4 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-[#2596be]"/>
+
+ <div class="relative">
+  <input
+    type="password"
+    id="password"
+    placeholder="Password"
+    required
+    class="w-full px-4 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-[#2596be]"
+  />
+  <button
+    type="button"
+    id="togglePassword"
+    class="absolute right-2 top-2 p-1 text-[#000] focus:outline-none"
+  >
+    <!-- Eye open (default) -->
+    <svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-5 w-5">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    </svg>
+
+    <!-- Eye closed (hidden initially) -->
+    <svg id="eyeClosed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-5 w-5 hidden">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 012.112-3.592M6.07 6.07l11.86 11.86M9.88 9.88a3 3 0 104.24 4.24" />
+    </svg>
+  </button>
+ </div>
+
+<button
+  type="submit"
+  class="w-full bg-[#2596be] hover:bg-[#1f7ea2] text-white font-semibold py-2 rounded transition"
+>
+  Login
+</button>
+
+    </form>
+    <p id="loginError" class="mt-4 text-sm text-red-600 hidden">Invalid credentials. Try again.</p>
+  </div>
+
+  <script>
+    const USERS = [{ username: "rmkuser", password: "windows123" }]; // Change these values as needed
+    const loginForm = document.getElementById("loginForm");
+    const errorMsg = document.getElementById("loginError");
+
+    loginForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      const isValid = USERS.some(u => u.username === username && u.password === password);
+      if (isValid) {
+        localStorage.setItem("rmkLoggedIn", "true");
+        window.location.href = "views/doors-windows.html";
+      } else {
+        errorMsg.classList.remove("hidden");
+      }
+    });
+  </script>
+
+<script>
+  const togglePasswordBtn = document.getElementById("togglePassword");
+  const passwordField = document.getElementById("password");
+  const eyeOpen = document.getElementById("eyeOpen");
+  const eyeClosed = document.getElementById("eyeClosed");
+
+  togglePasswordBtn.addEventListener("click", () => {
+    const isHidden = passwordField.getAttribute("type") === "password";
+    passwordField.setAttribute("type", isHidden ? "text" : "password");
+    eyeOpen.classList.toggle("hidden", !isHidden);
+    eyeClosed.classList.toggle("hidden", isHidden);
+  });
+</script>
+
+</body>
+</html>
